@@ -1,5 +1,5 @@
 {
-  "name": "interview-ai",
+  "name": "interview-buddy",
   "private": true,
   "dependencies": {
     "@google/genai": "^1.42.0",
@@ -11,7 +11,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1",
     "multer": "^2.0.2",
-    "pdf-parse": "^2.4.5",
+    "unpdf": "^1.7.0",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   }
