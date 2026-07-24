@@ -8,9 +8,18 @@ try {
     puppeteer = null
 }
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_GENAI_API_KEY
-})
+// created lazily (on first actual use) instead of at module load — same reasoning as the
+// unpdf change: if GOOGLE_GENAI_API_KEY is ever missing/invalid, this throws, and we don't
+// want a throw here to take down every route in the app on cold start, only the AI-dependent ones.
+let ai
+function getAiClient() {
+    if (!ai) {
+        ai = new GoogleGenAI({
+            apiKey: process.env.GOOGLE_GENAI_API_KEY
+        })
+    }
+    return ai
+}
 
 
 const interviewReportSchema = z.object({
@@ -46,7 +55,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
                         Job Description: ${jobDescription}
 `
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
         model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
@@ -103,7 +112,7 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
                     `
 
-    const response = await ai.models.generateContent({
+    const response = await getAiClient().models.generateContent({
         model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
