@@ -12,6 +12,14 @@ async function generateInterViewReportController(req, res) {
     // required here (not at the top of the file) so that if PDF parsing ever breaks,
     // it only fails this one request instead of crashing the whole serverless function
     // (which previously took down /api/auth/* too, since api/index.js loads this whole file on cold start)
+    // Node doesn't implement Math.sumPrecise yet (a very recent JS addition), but pdf.js
+    // (bundled inside unpdf) calls it unconditionally in some internal font-table code.
+    // Polyfilling it here avoids intermittent crashes on resumes with embedded fonts.
+    // Safe no-op once Node ships the real one.
+    if (typeof Math.sumPrecise !== "function") {
+        Math.sumPrecise = (numbers) => [...numbers].reduce((sum, n) => sum + n, 0)
+    }
+
     const { extractText, getDocumentProxy } = require("unpdf")
     const pdfDocument = await getDocumentProxy(new Uint8Array(req.file.buffer))
     const resumeContent = await extractText(pdfDocument, { mergePages: true })
